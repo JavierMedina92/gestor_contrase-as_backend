@@ -5,6 +5,8 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    background-color: rgb(18, 129, 92);
+    color: darkblue;
 }
 
 h1 {
@@ -23,7 +25,27 @@ input {
 }
 
 button {
-    padding: 10px;
-    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
     cursor: pointer;
+    transition: background-color 0.3s ease;
+    background-color: #0422b8;
+    color: aliceblue;
+    border-radius: 5px;
+}
+
+/* Estilo para el botón 'Generar Contraseña' */
+#generarContraseña {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+}
+
+/* Estilo hover para ambos botones */
+button:hover {
+    background-color: #07f586; /* Amarillo */
+    color: #0716f1; /* Color de texto oscuro */
 }
