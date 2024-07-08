@@ -7,7 +7,7 @@ const PORT = 3000;
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'tu_contraseña',
+    password: '',
     database: 'gestor_contraseñas'
 });
 
@@ -25,6 +25,25 @@ app.use(express.json());
 // Ruta de prueba
 app.get('/', (req, res) => {
     res.send('API funcionando');
+});
+
+// Ruta para registrar usuarios
+app.post('/api/registro', (req, res) => {
+    const { nombre, correo, contraseña } = req.body;
+
+    // Validar datos de entrada
+    if (!nombre || !correo || !contraseña) {
+        return res.status(400).send('Todos los campos son requeridos');
+    }
+
+    // Insertar el nuevo usuario en la base de datos
+    const query = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
+    db.query(query, [nombre, correo, contraseña], (err, result) => {
+        if (err) {
+            return res.status(500).send('Error al registrar usuario');
+        }
+        res.status(200).send('Usuario registrado exitosamente');
+    });
 });
 
 // Iniciar servidor
