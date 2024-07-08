@@ -5,8 +5,8 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: rgb(18, 129, 92);
-    color: darkblue;
+    background: linear-gradient(rgb(4, 200, 235), rgb(22, 3, 133));
+    color: rgb(9, 243, 192);
 }
 
 h1 {
@@ -14,6 +14,12 @@ h1 {
 }
 
 form {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 20px;
+    background: linear-gradient(rgb(4, 200, 235), rgb(22, 3, 133));
+    color: #cbf707;
     display: flex;
     flex-direction: column;
 }
@@ -29,12 +35,11 @@ button {
     border: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    background-color: #0422b8;
+    background-color: #138f84;
     color: aliceblue;
     border-radius: 5px;
 }
 
-/* Estilo para el botón 'Generar Contraseña' */
 #generarContraseña {
     margin-top: 10px;
     padding: 10px 20px;
@@ -44,7 +49,6 @@ button {
     border-radius: 5px;
 }
 
-/* Estilo hover para ambos botones */
 button:hover {
     background-color: #07f586; /* Amarillo */
     color: #0716f1; /* Color de texto oscuro */
