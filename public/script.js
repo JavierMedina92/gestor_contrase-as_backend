@@ -1,4 +1,3 @@
-
 const API_URL = '/api/registro';
 const PASSWORD_LENGTH = 16;
 
@@ -16,6 +15,8 @@ const limpiarFormulario = () => {
     getElementById('nombre').value = '';
     getElementById('correo').value = '';
     getElementById('contraseña').value = '';
+    getElementById('plataforma').value = '';
+    getElementById('nombre_cuenta').value = '';
 };
 
 // Función para generar una contraseña segura
@@ -65,15 +66,16 @@ const handleRegistro = async (e) => {
     const nombre = getInputValue('nombre');
     const correo = getInputValue('correo');
     const contraseña = getInputValue('contraseña');
-
+    const plataforma = getInputValue('plataforma');
+    const nombreCuenta = getInputValue('nombre_cuenta');
 
     // Validar datos de entrada
-    if (!nombre || !correo || !contraseña) {
+    if (!nombre || !correo || !contraseña || !plataforma || !nombreCuenta) {
         return showAlert('Todos los campos son requeridos');
     }
 
     // Datos del usuario
-    const datosUsuario = { nombre, correo, contraseña };
+    const datosUsuario = { nombre, correo, contraseña, plataforma, nombreCuenta };
 
     // Registrar usuario
     await registrarUsuario(datosUsuario);
