@@ -2,12 +2,9 @@ const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
 const bcrypt = require('bcrypt');
-const session = require('express-session');
-const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = 3000;
-const SECRET_KEY = 'your_secret_key';
 
 // Configuración de la base de datos
 const db = mysql.createConnection({
@@ -49,24 +46,24 @@ app.post('/api/registro', async (req, res) => {
     }
 
     try {
-        // Verificar si el usuario o correo ya existen
-        const checkQuery = 'SELECT * FROM Usuarios WHERE nombre = ? OR correo = ?';
-        db.query(checkQuery, [nombre, correo], async (err, results) => {
+        // Verificar si el correo ya existe
+        const queryVerificar = 'SELECT * FROM Usuarios WHERE correo = ?';
+        db.query(queryVerificar, [correo], async (err, results) => {
             if (err) {
-                console.error('Error al verificar usuario:', err);
-                return res.status(500).send('Error al verificar usuario');
+                console.error('Error al verificar correo:', err.stack);
+                return res.status(500).send('Error al verificar correo');
             }
 
             if (results.length > 0) {
-                return res.status(409).send('El nombre de usuario o correo ya existe');
+                return res.status(400).send('El correo ya está registrado');
             }
 
             // Hashear la contraseña
             const hashedPassword = await bcrypt.hash(contraseña, 10);
 
             // Insertar el nuevo usuario en la base de datos
-            const query = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
-            db.query(query, [nombre, correo, hashedPassword], (err, result) => {
+            const queryInsertar = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
+            db.query(queryInsertar, [nombre, correo, hashedPassword], (err, result) => {
                 if (err) {
                     console.error('Error al registrar usuario:', err.stack);
                     return res.status(500).send('Error al registrar usuario: ' + err.message);
