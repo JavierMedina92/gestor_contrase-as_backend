@@ -2,10 +2,12 @@ const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
 const bcrypt = require('bcrypt');
-
+const session = require('express-session');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = 3000;
+const SECRET_KEY = 'your_secret_key';
 
 // Configuración de la base de datos
 const db = mysql.createConnection({
@@ -47,18 +49,31 @@ app.post('/api/registro', async (req, res) => {
     }
 
     try {
-        // Hashear la contraseña
-        const hashedPassword = await bcrypt.hash(contraseña, 10);
-
-        // Insertar el nuevo usuario en la base de datos
-        const query = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
-        db.query(query, [nombre, correo, hashedPassword], (err, result) => {
+        // Verificar si el usuario o correo ya existen
+        const checkQuery = 'SELECT * FROM Usuarios WHERE nombre = ? OR correo = ?';
+        db.query(checkQuery, [nombre, correo], async (err, results) => {
             if (err) {
-                console.error('Error al registrar usuario:', err.stack);
-                return res.status(500).send('Error al registrar usuario: ' + err.message);
+                console.error('Error al verificar usuario:', err);
+                return res.status(500).send('Error al verificar usuario');
             }
-            console.log('Resultado de la inserción:', result);
-            res.status(200).send('Usuario registrado exitosamente');
+
+            if (results.length > 0) {
+                return res.status(409).send('El nombre de usuario o correo ya existe');
+            }
+
+            // Hashear la contraseña
+            const hashedPassword = await bcrypt.hash(contraseña, 10);
+
+            // Insertar el nuevo usuario en la base de datos
+            const query = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
+            db.query(query, [nombre, correo, hashedPassword], (err, result) => {
+                if (err) {
+                    console.error('Error al registrar usuario:', err.stack);
+                    return res.status(500).send('Error al registrar usuario: ' + err.message);
+                }
+                console.log('Resultado de la inserción:', result);
+                res.status(200).send('Usuario registrado exitosamente');
+            });
         });
     } catch (error) {
         console.error('Error al registrar usuario:', error);
