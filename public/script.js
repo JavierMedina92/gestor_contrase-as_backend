@@ -66,6 +66,7 @@ const handleRegistro = async (e) => {
     const correo = getInputValue('correo');
     const contraseña = getInputValue('contraseña');
 
+
     // Validar datos de entrada
     if (!nombre || !correo || !contraseña) {
         return showAlert('Todos los campos son requeridos');

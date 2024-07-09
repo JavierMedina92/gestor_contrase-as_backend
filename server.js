@@ -29,47 +29,73 @@ app.use(express.json());
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-    res.send('API funcionando');
-});
-
-// Ruta para registrar usuarios
+// Ruta para registrar usuarios y sus cuentas
 app.post('/api/registro', async (req, res) => {
-    const { nombre, correo, contraseña } = req.body;
+    const { nombre, correo, contraseña, plataforma, nombreCuenta } = req.body;
 
-    console.log('Datos recibidos:', { nombre, correo, contraseña });
+    console.log('Datos recibidos:', { nombre, correo, contraseña, plataforma, nombreCuenta });
 
     // Validar datos de entrada
-    if (!nombre || !correo || !contraseña) {
+    if (!nombre || !correo || !contraseña || !plataforma || !nombreCuenta) {
         return res.status(400).send('Todos los campos son requeridos');
     }
 
     try {
-        // Verificar si el correo ya existe
-        const queryVerificar = 'SELECT * FROM Usuarios WHERE correo = ?';
-        db.query(queryVerificar, [correo], async (err, results) => {
+        // Hashear la contraseña
+        const hashedPassword = await bcrypt.hash(contraseña, 10);
+
+        // Iniciar transacción
+        db.beginTransaction((err) => {
             if (err) {
-                console.error('Error al verificar correo:', err.stack);
-                return res.status(500).send('Error al verificar correo');
+                return res.status(500).send('Error al iniciar la transacción');
             }
-
-            if (results.length > 0) {
-                return res.status(400).send('El correo ya está registrado');
-            }
-
-            // Hashear la contraseña
-            const hashedPassword = await bcrypt.hash(contraseña, 10);
 
             // Insertar el nuevo usuario en la base de datos
-            const queryInsertar = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
-            db.query(queryInsertar, [nombre, correo, hashedPassword], (err, result) => {
+            const insertUserQuery = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
+            db.query(insertUserQuery, [nombre, correo, hashedPassword], (err, result) => {
                 if (err) {
-                    console.error('Error al registrar usuario:', err.stack);
-                    return res.status(500).send('Error al registrar usuario: ' + err.message);
+                    return db.rollback(() => {
+                        console.error('Error al registrar usuario:', err.stack);
+                        return res.status(500).send('Error al registrar usuario: ' + err.message);
+                    });
                 }
-                console.log('Resultado de la inserción:', result);
-                res.status(200).send('Usuario registrado exitosamente');
+
+                const userId = result.insertId;
+
+                // Insertar la nueva cuenta en la base de datos
+                const insertAccountQuery = 'INSERT INTO Cuentas (usuario_id, plataforma, nombre_cuenta, contraseña) VALUES (?, ?, ?, ?)';
+                db.query(insertAccountQuery, [userId, plataforma, nombreCuenta, contraseña], (err, result) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.error('Error al registrar cuenta:', err.stack);
+                            return res.status(500).send('Error al registrar cuenta: ' + err.message);
+                        });
+                    }
+
+                    const accountId = result.insertId;
+
+                    // Insertar en la bitácora de accesos
+                    const insertLogQuery = 'INSERT INTO BitacoraAccesos (usuario_id, cuenta_id) VALUES (?, ?)';
+                    db.query(insertLogQuery, [userId, accountId], (err, result) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                console.error('Error al registrar en bitácora de accesos:', err.stack);
+                                return res.status(500).send('Error al registrar en bitácora de accesos: ' + err.message);
+                            });
+                        }
+
+                        // Confirmar transacción
+                        db.commit((err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    console.error('Error al confirmar la transacción:', err.stack);
+                                    return res.status(500).send('Error al confirmar la transacción');
+                                });
+                            }
+                            res.status(200).send('Usuario registrado exitosamente');
+                        });
+                    });
+                });
             });
         });
     } catch (error) {
@@ -81,80 +107,4 @@ app.post('/api/registro', async (req, res) => {
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
-
-// Ruta para iniciar sesión
-app.post('/api/login', (req, res) => {
-    const { correo, contraseña } = req.body;
-
-    if (!correo || !contraseña) {
-        return res.status(400).send('Correo y contraseña son requeridos');
-    }
-
-    const query = 'SELECT * FROM Usuarios WHERE correo = ?';
-    db.query(query, [correo], async (err, results) => {
-        if (err) {
-            console.error('Error al buscar usuario:', err.stack);
-            return res.status(500).send('Error al iniciar sesión');
-        }
-
-        if (results.length === 0) {
-            return res.status(400).send('Usuario no encontrado');
-        }
-
-        const usuario = results[0];
-        const contraseñaValida = await bcrypt.compare(contraseña, usuario.contraseña);
-
-        if (!contraseñaValida) {
-            return res.status(400).send('Contraseña incorrecta');
-        }
-
-        res.status(200).send('Inicio de sesión exitoso');
-    });
-});
-
-// Ruta para agregar una contraseña
-app.post('/api/contraseñas', (req, res) => {
-    const { usuarioId, plataforma, contraseña } = req.body;
-
-    if (!usuarioId || !plataforma || !contraseña) {
-        return res.status(400).send('Todos los campos son requeridos');
-    }
-
-    const query = 'INSERT INTO Cuentas (usuarioId, plataforma, contraseña) VALUES (?, ?, ?)';
-    db.query(query, [usuarioId, plataforma, contraseña], (err, result) => {
-        if (err) {
-            console.error('Error al agregar contraseña:', err.stack);
-            return res.status(500).send('Error al agregar contraseña');
-        }
-        res.status(200).send('Contraseña agregada exitosamente');
-    });
-});
-
-// Ruta para obtener todas las contraseñas de un usuario
-app.get('/api/contraseñas/:usuarioId', (req, res) => {
-    const { usuarioId } = req.params;
-
-    const query = 'SELECT * FROM Cuentas WHERE usuarioId = ?';
-    db.query(query, [usuarioId], (err, results) => {
-        if (err) {
-            console.error('Error al obtener contraseñas:', err.stack);
-            return res.status(500).send('Error al obtener contraseñas');
-        }
-        res.status(200).json(results);
-    });
-});
-
-// Ruta para eliminar una contraseña
-app.delete('/api/contraseñas/:id', (req, res) => {
-    const { id } = req.params;
-
-    const query = 'DELETE FROM Cuentas WHERE id = ?';
-    db.query(query, [id], (err, result) => {
-        if (err) {
-            console.error('Error al eliminar contraseña:', err.stack);
-            return res.status(500).send('Error al eliminar contraseña');
-        }
-        res.status(200).send('Contraseña eliminada exitosamente');
-    });
 });
