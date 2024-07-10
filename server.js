@@ -29,6 +29,17 @@ app.use(express.json());
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Ruta para obtener datos de la base de datos
+app.get('/datos', (req, res) => {
+    db.query('SELECT * FROM Cuentas', (err, result) => {
+        if (err) {
+            console.error('Error al obtener datos:', err);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        res.json(result); // Devolver los datos como respuesta en formato JSON
+    });
+});
+
 // Ruta para registrar usuarios y sus cuentas
 app.post('/api/registro', async (req, res) => {
     const { nombre, correo, contraseña, plataforma, nombreCuenta } = req.body;
@@ -102,6 +113,17 @@ app.post('/api/registro', async (req, res) => {
         console.error('Error al registrar usuario:', error);
         res.status(500).send('Error al registrar usuario');
     }
+});
+
+// Ruta para obtener la lista de usuarios
+app.get('/api/usuarios', (req, res) => {
+    db.query('SELECT * FROM Usuarios', (err, result) => {
+        if (err) {
+            console.error('Error al obtener usuarios:', err);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        res.json(result);
+    });
 });
 
 // Iniciar servidor
