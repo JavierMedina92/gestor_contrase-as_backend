@@ -81,6 +81,11 @@ const handleRegistro = async (e) => {
     await registrarUsuario(datosUsuario);
 };
 
+// Asignar evento al botón Ver Usuarios
+getElementById('verUsuarios').addEventListener('click', () => {
+    window.location.href = 'usuarios.html'; // Reemplaza con la ruta correcta
+});
+
 
 // Asignar eventos
 getElementById('registroForm').addEventListener('submit', handleRegistro);

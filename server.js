@@ -126,44 +126,6 @@ app.get('/api/usuarios', (req, res) => {
     });
 });
 
-app.post('/api/login', async (req, res) => {
-    const { usuario, contraseña } = req.body;
-
-    // Validar datos de entrada
-    if (!usuario || !contraseña) {
-        return res.status(400).json({ error: 'Todos los campos son requeridos' });
-    }
-
-    try {
-        // Buscar el usuario en la base de datos
-        const result = await db.query('SELECT * FROM usuario_maestro WHERE usuario = ?', [usuario]);
-        const user = result[0];
-
-        // Verificar si el usuario existe
-        if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-        }
-
-        // Verificar la contraseña
-        const passwordMatch = await bcrypt.compare(contraseña, user.contraseña);
-        if (!passwordMatch) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
-        }
-
-        // Si es el usuario maestro, redireccionar al cliente
-        if (usuario === 'usuario_maestro') {
-            return res.status(200).json({ message: 'Inicio de sesión exitoso', redirect: 'http://localhost:3000/' });
-        }
-
-        // Para otros usuarios, puedes retornar un token de sesión u otra información
-        // Ejemplo: return res.status(200).json({ token: 'token_de_sesion' });
-
-    } catch (error) {
-        console.error('Error en inicio de sesión:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
