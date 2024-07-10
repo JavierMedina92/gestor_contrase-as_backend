@@ -81,40 +81,6 @@ const handleRegistro = async (e) => {
     await registrarUsuario(datosUsuario);
 };
 
-// script.js
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     const endpoint = '/datos'; // Ruta al endpoint en tu backend que devuelve los datos
-
-//     fetch(endpoint)
-//         .then(response => response.json())
-//         .then(data => {
-//             const tableBody = document.getElementById('table_data');
-//             if (!tableBody) {
-//                 console.error('Elemento tbody con ID "table_data" no encontrado en el HTML.');
-//                 return;
-//             }
-
-//             // Limpiar cualquier contenido previo en la tabla
-//             tableBody.innerHTML = '';
-
-//             // Iterar sobre los datos y agregar filas a la tabla
-//             data.forEach(row => {
-//                 const tr = document.createElement('tr');
-//                 tr.innerHTML = `
-//                     <td>${row.id}</td>
-//                     <td>${row.nombre}</td>
-//                     <td>${row.correo}</td>
-//                     <td>${row.contraseña}</td>
-//                     <td>${row.plataforma}</td>
-//                     <td>${row.nombre_cuenta}</td>
-//                 `;
-//                 tableBody.appendChild(tr);
-//             });
-//         })
-//         .catch(error => console.error('Error al obtener datos:', error));
-// });
-
 
 // Asignar eventos
 getElementById('registroForm').addEventListener('submit', handleRegistro);

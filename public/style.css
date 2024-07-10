@@ -7,6 +7,8 @@ body {
     height: 100vh;
     background: linear-gradient(rgb(4, 200, 235), rgb(22, 3, 133));
     color: rgb(9, 243, 192);
+    margin: 0;
+    padding: 0;
 }
 
 h1 {
@@ -54,3 +56,22 @@ button:hover {
     color: #0716f1; /* Color de texto oscuro */
 }
 
+
+/* Estilos para dispositivos móviles */
+@media only screen and (max-width: 600px) {
+    /* Ajustes de tamaño para inputs, botones, etc. */
+    input, button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* Estilos para tabletas */
+@media only screen and (min-width: 601px) and (max-width: 1024px) {
+    /* Ajustes específicos para tabletas */
+}
+
+/* Estilos para smart TVs */
+@media only screen and (min-width: 1025px) {
+    /* Ajustes específicos para smart TVs */
+}
