@@ -44,10 +44,7 @@ const cargarUsuarios = async () => {
     }
 };
 
-// Ejecutar cargarUsuarios cuando el DOM esté completamente cargado
-document.addEventListener('DOMContentLoaded', cargarUsuarios);
-
-// Función para registrar un usuario
+// Función para registrar un usuario (POST)
 const registrarUsuario = async (datosUsuario) => {
     try {
         const response = await fetch(API_URL, {
@@ -70,16 +67,47 @@ const registrarUsuario = async (datosUsuario) => {
     }
 };
 
-// Función para generar una contraseña segura
-document.getElementById('generarContraseña').addEventListener('click', () => {
-    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
-    let contraseña = '';
-    for (let i = 0; i < 16; i++) {
-        const randomIndex = Math.floor(Math.random() * caracteres.length);
-        contraseña += caracteres[randomIndex];
+// Función para editar un usuario (PUT)
+const editarUsuario = async (id, datosActualizados) => {
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosActualizados)
+        });
+
+        if (response.ok) {
+            alert('Usuario actualizado exitosamente');
+            cargarUsuarios(); // Actualizar tabla después de editar
+        } else {
+            const error = await response.text();
+            alert('Error al actualizar usuario: ' + error);
+        }
+    } catch (error) {
+        alert('Error al actualizar usuario: ' + error.message);
     }
-    document.getElementById('contraseña').value = contraseña;
-});
+};
+
+// Función para eliminar un usuario (DELETE)
+const eliminarUsuario = async (id) => {
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert('Usuario eliminado exitosamente');
+            cargarUsuarios(); // Actualizar tabla después de eliminar
+        } else {
+            const error = await response.text();
+            alert('Error al eliminar usuario: ' + error);
+        }
+    } catch (error) {
+        alert('Error al eliminar usuario: ' + error.message);
+    }
+};
 
 // Función para agregar eventos a los botones de editar
 const agregarEventosEditar = () => {
@@ -122,26 +150,10 @@ const agregarEventosEditar = () => {
                     const datosActualizados = { id, nombre, correo, contraseña, plataforma, nombre_cuenta: nombreCuenta };
 
                     // Enviar solicitud para actualizar el usuario
-                    try {
-                        const response = await fetch(`${API_URL}/${id}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(datosActualizados)
-                        });
+                    await editarUsuario(id, datosActualizados);
 
-                        if (response.ok) {
-                            alert('Usuario actualizado exitosamente');
-                            cargarUsuarios(); // Actualizar tabla después de editar
-                            modal.style.display = 'none'; // Cerrar modal
-                        } else {
-                            const error = await response.text();
-                            alert('Error al actualizar usuario: ' + error);
-                        }
-                    } catch (error) {
-                        alert('Error al actualizar usuario: ' + error.message);
-                    }
+                    // Cerrar modal después de editar
+                    modal.style.display = 'none';
                 });
 
                 // Agregar evento para cerrar modal
@@ -172,22 +184,16 @@ const agregarEventosEliminar = () => {
             const confirmarEliminar = confirm('¿Estás seguro de que deseas eliminar este usuario?');
             if (confirmarEliminar) {
                 // Enviar solicitud para eliminar el usuario
-                try {
-                    const response = await fetch(`${API_URL}/${userId}`, {
-                        method: 'DELETE'
-                    });
-
-                    if (response.ok) {
-                        alert('Usuario eliminado exitosamente');
-                        cargarUsuarios(); // Actualizar tabla después de eliminar
-                    } else {
-                        const error = await response.text();
-                        alert('Error al eliminar usuario: ' + error);
-                    }
-                } catch (error) {
-                    alert('Error al eliminar usuario: ' + error.message);
-                }
+                await eliminarUsuario(userId);
             }
         });
     });
 };
+
+// Evento para regresar a la interfaz principal
+document.getElementById('home').addEventListener('click', () => {
+    window.location.href = 'http://localhost:3000/registros';
+});
+
+// Ejecutar cargarUsuarios cuando el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', cargarUsuarios);

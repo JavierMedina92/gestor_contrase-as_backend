@@ -56,6 +56,30 @@ button:hover {
     color: #0716f1; /* Color de texto oscuro */
 }
 
+.tablaUsuarios {
+    width: 50px;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    border: 1px solid #ddd; /* Borde delgada gris */
+}
+
+th {
+    background-color: #f2f2f2; /* Fondo gris claro */
+    border: 1px solid #ddd; /* Borde delgada gris */
+    padding: 8px;
+    text-align: left;
+}
+
+/* Estilo alternativo para filas */
+tr:nth-child(even) {
+    background-color: #f9f9f9; /* Fondo gris aún más claro para filas pares */
+}
+
+/* Estilo para las celdas de datos */
+td {
+    border: 1px solid #ddd; /* Borde delgada gris */
+    padding: 8px;
+}
 
 /* Estilos para dispositivos móviles */
 @media only screen and (max-width: 600px) {

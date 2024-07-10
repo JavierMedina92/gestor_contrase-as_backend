@@ -10,7 +10,7 @@ const PORT = 3000;
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: '', // Coloca tu contraseña si la tienes configurada
     database: 'gestor_contraseñas'
 });
 
@@ -29,25 +29,40 @@ app.use(express.json());
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ruta para obtener datos de la base de datos
-app.get('/datos', (req, res) => {
-    db.query('SELECT * FROM Cuentas', (err, result) => {
+// Ruta para obtener la lista de usuarios
+app.get('/api/usuarios', (req, res) => {
+    const query = 'SELECT * FROM Usuarios';
+    db.query(query, (err, result) => {
         if (err) {
-            console.error('Error al obtener datos:', err);
+            console.error('Error al obtener usuarios:', err);
             return res.status(500).json({ error: 'Error interno del servidor' });
         }
-        res.json(result); // Devolver los datos como respuesta en formato JSON
+        res.json(result);
     });
 });
 
-// Ruta para registrar usuarios y sus cuentas
-app.post('/api/registro', async (req, res) => {
-    const { nombre, correo, contraseña, plataforma, nombreCuenta } = req.body;
+// Ruta para obtener un usuario por su ID
+app.get('/api/usuarios/:id', (req, res) => {
+    const { id } = req.params;
+    const query = 'SELECT * FROM Usuarios WHERE id = ?';
+    db.query(query, [id], (err, result) => {
+        if (err) {
+            console.error('Error al obtener usuario por ID:', err);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        res.json(result[0]);
+    });
+});
 
-    console.log('Datos recibidos:', { nombre, correo, contraseña, plataforma, nombreCuenta });
+// Ruta para registrar usuarios
+app.post('/api/usuarios', async (req, res) => {
+    const { nombre, correo, contraseña, plataforma, nombre_cuenta } = req.body;
 
     // Validar datos de entrada
-    if (!nombre || !correo || !contraseña || !plataforma || !nombreCuenta) {
+    if (!nombre || !correo || !contraseña || !plataforma || !nombre_cuenta) {
         return res.status(400).send('Todos los campos son requeridos');
     }
 
@@ -55,57 +70,32 @@ app.post('/api/registro', async (req, res) => {
         // Hashear la contraseña
         const hashedPassword = await bcrypt.hash(contraseña, 10);
 
-        // Iniciar transacción
-        db.beginTransaction((err) => {
+        // Insertar el nuevo usuario en la base de datos
+        const insertUserQuery = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
+        db.query(insertUserQuery, [nombre, correo, hashedPassword], (err, result) => {
             if (err) {
-                return res.status(500).send('Error al iniciar la transacción');
+                console.error('Error al registrar usuario:', err);
+                return res.status(500).send('Error al registrar usuario');
             }
 
-            // Insertar el nuevo usuario en la base de datos
-            const insertUserQuery = 'INSERT INTO Usuarios (nombre, correo, contraseña) VALUES (?, ?, ?)';
-            db.query(insertUserQuery, [nombre, correo, hashedPassword], (err, result) => {
+            const userId = result.insertId;
+
+            // Insertar la nueva cuenta en la base de datos
+            const insertAccountQuery = 'INSERT INTO Cuentas (usuario_id, plataforma, nombre_cuenta, contraseña) VALUES (?, ?, ?, ?)';
+            db.query(insertAccountQuery, [userId, plataforma, nombre_cuenta, contraseña], (err, result) => {
                 if (err) {
-                    return db.rollback(() => {
-                        console.error('Error al registrar usuario:', err.stack);
-                        return res.status(500).send('Error al registrar usuario: ' + err.message);
-                    });
+                    console.error('Error al registrar cuenta:', err);
+                    return res.status(500).send('Error al registrar cuenta');
                 }
 
-                const userId = result.insertId;
-
-                // Insertar la nueva cuenta en la base de datos
-                const insertAccountQuery = 'INSERT INTO Cuentas (usuario_id, plataforma, nombre_cuenta, contraseña) VALUES (?, ?, ?, ?)';
-                db.query(insertAccountQuery, [userId, plataforma, nombreCuenta, contraseña], (err, result) => {
+                // Insertar en la bitácora de accesos
+                const insertLogQuery = 'INSERT INTO BitacoraAccesos (usuario_id, cuenta_id) VALUES (?, ?)';
+                db.query(insertLogQuery, [userId, result.insertId], (err, result) => {
                     if (err) {
-                        return db.rollback(() => {
-                            console.error('Error al registrar cuenta:', err.stack);
-                            return res.status(500).send('Error al registrar cuenta: ' + err.message);
-                        });
+                        console.error('Error al registrar en bitácora de accesos:', err);
+                        return res.status(500).send('Error al registrar en bitácora de accesos');
                     }
-
-                    const accountId = result.insertId;
-
-                    // Insertar en la bitácora de accesos
-                    const insertLogQuery = 'INSERT INTO BitacoraAccesos (usuario_id, cuenta_id) VALUES (?, ?)';
-                    db.query(insertLogQuery, [userId, accountId], (err, result) => {
-                        if (err) {
-                            return db.rollback(() => {
-                                console.error('Error al registrar en bitácora de accesos:', err.stack);
-                                return res.status(500).send('Error al registrar en bitácora de accesos: ' + err.message);
-                            });
-                        }
-
-                        // Confirmar transacción
-                        db.commit((err) => {
-                            if (err) {
-                                return db.rollback(() => {
-                                    console.error('Error al confirmar la transacción:', err.stack);
-                                    return res.status(500).send('Error al confirmar la transacción');
-                                });
-                            }
-                            res.status(200).send('Usuario registrado exitosamente');
-                        });
-                    });
+                    res.status(200).send('Usuario registrado exitosamente');
                 });
             });
         });
@@ -115,14 +105,56 @@ app.post('/api/registro', async (req, res) => {
     }
 });
 
-// Ruta para obtener la lista de usuarios
-app.get('/api/usuarios', (req, res) => {
-    db.query('SELECT * FROM Usuarios', (err, result) => {
+// Ruta para actualizar un usuario por su ID
+app.put('/api/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nombre, correo, contraseña, plataforma, nombre_cuenta } = req.body;
+
+    // Validar datos de entrada
+    if (!nombre || !correo || !contraseña || !plataforma || !nombre_cuenta) {
+        return res.status(400).send('Todos los campos son requeridos');
+    }
+
+    try {
+        // Hashear la contraseña
+        const hashedPassword = await bcrypt.hash(contraseña, 10);
+
+        // Actualizar usuario en la base de datos
+        const updateUserQuery = 'UPDATE Usuarios SET nombre = ?, correo = ?, contraseña = ? WHERE id = ?';
+        db.query(updateUserQuery, [nombre, correo, hashedPassword, id], (err, result) => {
+            if (err) {
+                console.error('Error al actualizar usuario:', err);
+                return res.status(500).send('Error al actualizar usuario');
+            }
+
+            // Actualizar cuenta asociada
+            const updateAccountQuery = 'UPDATE Cuentas SET plataforma = ?, nombre_cuenta = ?, contraseña = ? WHERE usuario_id = ?';
+            db.query(updateAccountQuery, [plataforma, nombre_cuenta, contraseña, id], (err, result) => {
+                if (err) {
+                    console.error('Error al actualizar cuenta:', err);
+                    return res.status(500).send('Error al actualizar cuenta');
+                }
+                res.status(200).send('Usuario actualizado correctamente');
+            });
+        });
+    } catch (error) {
+        console.error('Error al actualizar usuario:', error);
+        res.status(500).send('Error al actualizar usuario');
+    }
+});
+
+// Ruta para eliminar un usuario por su ID
+app.delete('/api/usuarios/:id', (req, res) => {
+    const { id } = req.params;
+
+    // Eliminar usuario de la base de datos
+    const deleteUserQuery = 'DELETE FROM Usuarios WHERE id = ?';
+    db.query(deleteUserQuery, [id], (err, result) => {
         if (err) {
-            console.error('Error al obtener usuarios:', err);
-            return res.status(500).json({ error: 'Error interno del servidor' });
+            console.error('Error al eliminar usuario:', err);
+            return res.status(500).send('Error al eliminar usuario');
         }
-        res.json(result);
+        res.status(200).send('Usuario eliminado correctamente');
     });
 });
 
