@@ -13,7 +13,7 @@
         <!-- Aquí se mostrarán los datos obtenidos -->
     </div>
 
-       <table id="tablaUsuarios">
+    <table id="tablaUsuarios">
         <thead>
             <tr>
                 <th>Id</th>
@@ -28,10 +28,30 @@
         <tbody id="table_data"></tbody>
     </table>
 
-    <!-- Botón para regresar a la interfaz principal -->
-
     <button id="home" type="button">Regresar</button>
+
+    <!-- Modal de edición -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar Usuario</h2>
+            <form id="formEditarUsuario">
+                <input type="hidden" id="editUserId">
+                <label for="editNombre">Nombre:</label>
+                <input type="text" id="editNombre">
+                <label for="editCorreo">Correo:</label>
+                <input type="email" id="editCorreo">
+                <label for="editContraseña">Contraseña:</label>
+                <input type="password" id="editContraseña">
+                <label for="editPlataforma">Plataforma:</label>
+                <input type="text" id="editPlataforma">
+                <label for="editNombreCuenta">Nombre de Cuenta:</label>
+                <input type="text" id="editNombreCuenta">
+                <button type="submit">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
     <script src="usuarios.js"></script>
-    
 </body>
 </html>

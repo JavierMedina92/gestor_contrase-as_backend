@@ -131,7 +131,7 @@ const agregarEventosEditar = () => {
 
                 // Agregar evento para guardar cambios
                 const formEditar = document.getElementById('formEditarUsuario');
-                formEditar.addEventListener('submit', async (event) => {
+                formEditar.onsubmit = async (event) => {
                     event.preventDefault();
 
                     // Obtener datos actualizados del formulario
@@ -154,7 +154,7 @@ const agregarEventosEditar = () => {
 
                     // Cerrar modal después de editar
                     modal.style.display = 'none';
-                });
+                };
 
                 // Agregar evento para cerrar modal
                 const spanCerrar = modal.querySelector('.close');
