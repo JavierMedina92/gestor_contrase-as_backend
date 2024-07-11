@@ -147,16 +147,36 @@ app.put('/api/usuarios/:id', async (req, res) => {
 app.delete('/api/usuarios/:id', (req, res) => {
     const { id } = req.params;
 
-    // Eliminar usuario de la base de datos
-    const deleteUserQuery = 'DELETE FROM Usuarios WHERE id = ?';
-    db.query(deleteUserQuery, [id], (err, result) => {
+    // Eliminar registros en la tabla BitacoraAccesos que están asociados al usuario
+    const deleteAccessLogsQuery = 'DELETE FROM BitacoraAccesos WHERE cuenta_id IN (SELECT id FROM Cuentas WHERE usuario_id = ?)';
+    db.query(deleteAccessLogsQuery, [id], (err, result) => {
         if (err) {
-            console.error('Error al eliminar usuario:', err);
-            return res.status(500).send('Error al eliminar usuario');
+            console.error('Error al eliminar bitácora de accesos:', err);
+            return res.status(500).send('Error interno del servidor al eliminar bitácora de accesos');
         }
-        res.status(200).send('Usuario eliminado correctamente');
+
+        // Después de eliminar la bitácora de accesos, eliminar las cuentas asociadas al usuario
+        const deleteAccountsQuery = 'DELETE FROM Cuentas WHERE usuario_id = ?';
+        db.query(deleteAccountsQuery, [id], (err, result) => {
+            if (err) {
+                console.error('Error al eliminar cuentas:', err);
+                return res.status(500).send('Error interno del servidor al eliminar cuentas');
+            }
+
+            // Finalmente, eliminar el usuario de la tabla Usuarios
+            const deleteUserQuery = 'DELETE FROM Usuarios WHERE id = ?';
+            db.query(deleteUserQuery, [id], (err, result) => {
+                if (err) {
+                    console.error('Error al eliminar usuario:', err);
+                    return res.status(500).send('Error interno del servidor al eliminar usuario');
+                }
+                res.status(200).send('Usuario eliminado correctamente');
+            });
+        });
     });
 });
+
+
 
 // Iniciar servidor
 app.listen(PORT, () => {
