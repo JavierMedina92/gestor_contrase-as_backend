@@ -61,8 +61,11 @@ app.get('/api/usuarios/:id', (req, res) => {
 app.post('/api/usuarios', async (req, res) => {
     const { nombre, correo, contraseña, plataforma, nombre_cuenta } = req.body;
 
+    console.log(req.body); // Verifica qué datos están llegando al servidor
+
     // Validar datos de entrada
     if (!nombre || !correo || !contraseña || !plataforma || !nombre_cuenta) {
+        console.error('Todos los campos son requeridos');
         return res.status(400).send('Todos los campos son requeridos');
     }
 

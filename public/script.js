@@ -38,57 +38,57 @@ const handleGenerarContraseña = () => {
 
 const registrarUsuario = async (datosUsuario) => {
     try {
-        const response = await fetch('/api/usuarios', {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(datosUsuario)
         });
-
+ 
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Error en el registro:', errorText);
-            // Mostrar mensaje de error al usuario si es necesario
+            showAlert('Error en el registro: ' + errorText);
         } else {
-            // Registro exitoso, procesar respuesta si es necesario
+            console.log('Usuario registrado exitosamente');
+            showAlert('Usuario registrado exitosamente');
+            limpiarFormulario();
         }
     } catch (error) {
         console.error('Error en el registro:', error.message);
-        // Mostrar mensaje de error al usuario si es necesario
+        showAlert('Error en el registro: ' + error.message);
     }
 };
-
+ 
 // Ejemplo de función para manejar el evento de registro en el cliente
 const handleRegistro = async (e) => {
     e.preventDefault();
-
+ 
     const nombre = getInputValue('nombre');
     const correo = getInputValue('correo');
     const contraseña = getInputValue('contraseña');
     const plataforma = getInputValue('plataforma');
-    const nombreCuenta = getInputValue('nombre_cuenta');
-
+    const nombre_cuenta = getInputValue('nombre_cuenta'); // Cambiado a nombre_cuenta
+ 
     // Validar datos antes de enviarlos
-    if (!nombre || !correo || !contraseña || !plataforma || !nombreCuenta) {
-        // Mostrar mensaje al usuario indicando que todos los campos son requeridos
+    if (!nombre || !correo || !contraseña || !plataforma || !nombre_cuenta) {
         showAlert('Todos los campos son requeridos');
         return;
     }
-
+ 
     // Datos del usuario a enviar al servidor
-    const datosUsuario = { nombre, correo, contraseña, plataforma, nombreCuenta };
-
+    const datosUsuario = { nombre, correo, contraseña, plataforma, nombre_cuenta }; // Cambiado a nombre_cuenta
+ 
     // Enviar solicitud POST para registrar usuario
     await registrarUsuario(datosUsuario);
 };
-
+ 
 // Asignar evento al botón Ver Usuarios
 getElementById('verUsuarios').addEventListener('click', () => {
     window.location.href = 'usuarios.html'; // Reemplaza con la ruta correcta
 });
-
-
+ 
 // Asignar eventos
 getElementById('registroForm').addEventListener('submit', handleRegistro);
 getElementById('generarContraseña').addEventListener('click', handleGenerarContraseña);
