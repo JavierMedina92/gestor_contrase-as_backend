@@ -52,34 +52,34 @@ button {
 }
 
 button:hover {
-    background-color: #07f586; /* Amarillo */
-    color: #0716f1; /* Color de texto oscuro */
+    background-color: #07f586;
+    color: #0716f1;
 }
 
 .tablaUsuarios {
     width: 50px;
     border-collapse: collapse;
     margin-bottom: 20px;
-    border: 1px solid #ddd; /* Borde delgada gris */
+    border: 1px solid #ddd;
     text-align: center;
 }
 
 th {
-    background-color: #0d88da;   /* Fondo gris claro */
-    border: 1px solid #d1ce17;   /* Borde delgada gris */
+    background-color: #0d88da;
+    border: 1px solid #d1ce17;
     padding: 5px;
     text-align: left;
 }
 
 /* Estilo para las celdas de datos */
 td {
-    border: 1px solid #ddd; /* Borde delgada gris */
+    border: 1px solid #ddd; 
     padding: 8px;
 }
 
 /* Estilos para dispositivos móviles */
 @media only screen and (max-width: 600px) {
-    /* Ajustes de tamaño para inputs, botones, etc. */
+    
     input, button {
         width: 100%;
         margin-bottom: 10px;
@@ -88,10 +88,43 @@ td {
 
 /* Estilos para tabletas */
 @media only screen and (min-width: 601px) and (max-width: 1024px) {
-    /* Ajustes específicos para tabletas */
+    
 }
 
 /* Estilos para smart TVs */
 @media only screen and (min-width: 1025px) {
-    /* Ajustes específicos para smart TVs */
+
+}
+
+.modal {
+    display: none; /* Inicialmente oculto */
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Fondo oscuro semi-transparente */
+    z-index: 1000; /* Asegura que esté encima de otros elementos */
+    overflow: auto; /* Permite hacer scroll si el contenido es largo */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Ancho del modal */
+    max-width: 600px; /* Ancho máximo */
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
 }
