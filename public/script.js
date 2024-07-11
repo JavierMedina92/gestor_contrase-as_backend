@@ -1,4 +1,4 @@
-const API_URL = '/api/registro';
+const API_URL = '/api/usuarios';
 const PASSWORD_LENGTH = 16;
 
 // Función para obtener un elemento por su ID
@@ -36,10 +36,9 @@ const handleGenerarContraseña = () => {
     getElementById('contraseña').value = contraseñaSegura;
 };
 
-// Función para registrar un usuario
 const registrarUsuario = async (datosUsuario) => {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch('/api/usuarios', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -47,19 +46,20 @@ const registrarUsuario = async (datosUsuario) => {
             body: JSON.stringify(datosUsuario)
         });
 
-        if (response.ok) {
-            showAlert('Registro exitoso');
-            limpiarFormulario();
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error en el registro:', errorText);
+            // Mostrar mensaje de error al usuario si es necesario
         } else {
-            const error = await response.text();
-            showAlert('Error en el registro: ' + error);
+            // Registro exitoso, procesar respuesta si es necesario
         }
     } catch (error) {
-        showAlert('Error en el registro: ' + error.message);
+        console.error('Error en el registro:', error.message);
+        // Mostrar mensaje de error al usuario si es necesario
     }
 };
 
-// Función para manejar el evento de registro
+// Ejemplo de función para manejar el evento de registro en el cliente
 const handleRegistro = async (e) => {
     e.preventDefault();
 
@@ -69,15 +69,17 @@ const handleRegistro = async (e) => {
     const plataforma = getInputValue('plataforma');
     const nombreCuenta = getInputValue('nombre_cuenta');
 
-    // Validar datos de entrada
+    // Validar datos antes de enviarlos
     if (!nombre || !correo || !contraseña || !plataforma || !nombreCuenta) {
-        return showAlert('Todos los campos son requeridos');
+        // Mostrar mensaje al usuario indicando que todos los campos son requeridos
+        showAlert('Todos los campos son requeridos');
+        return;
     }
 
-    // Datos del usuario
+    // Datos del usuario a enviar al servidor
     const datosUsuario = { nombre, correo, contraseña, plataforma, nombreCuenta };
 
-    // Registrar usuario
+    // Enviar solicitud POST para registrar usuario
     await registrarUsuario(datosUsuario);
 };
 

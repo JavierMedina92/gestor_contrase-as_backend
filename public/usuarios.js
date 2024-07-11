@@ -192,7 +192,7 @@ const agregarEventosEliminar = () => {
 
 // Evento para regresar a la interfaz principal
 document.getElementById('home').addEventListener('click', () => {
-    window.location.href = 'http://localhost:3000/registros';
+    window.location.href = 'http://localhost:3000/';
 });
 
 // Ejecutar cargarUsuarios cuando el DOM esté completamente cargado
